@@ -28,6 +28,7 @@
 
 (asdf:defsystem #:zpng
   :depends-on (#:salza2)
+  :version "1.0"
   :components ((:file "package")
                (:file "specials"
                       :depends-on ("package"))
