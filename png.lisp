@@ -34,7 +34,9 @@
    (color-type :initform :truecolor :initarg :color-type :reader color-type)
    (bpp :initform 8 :initarg :bpp :reader bpp)
    (image-data :initarg :image-data :reader image-data
-               :writer (setf %image-data))))
+               :writer (setf %image-data))
+   (data-array :reader data-array
+               :writer (setf %data-array))))
 
 
 (defgeneric ihdr-color-type (png))
@@ -50,6 +52,13 @@
 (defgeneric write-png-stream (png stream))
 (defgeneric write-png (png pathname &key if-exists))
 
+(defmethod slot-unbound (class (png png) (slot (eql 'data-array)))
+  (let ((array (make-array (list (width png)
+                                  (height png)
+                                  (samples-per-pixel png))
+                            :displaced-to (image-data png)
+                            :element-type '(unsigned-byte 8))))
+    (setf (%data-array png) array)))
 
 (defmethod initialize-instance :after ((png png) &rest args &key image-data)
   (declare (ignore args))
@@ -57,7 +66,9 @@
     (setf (%image-data png)
           (make-array (* (height png) (rowstride png))
                       :initial-element 0
-                      :element-type '(unsigned-byte 8)))))
+                      :element-type '(unsigned-byte 8))))
+  (let ((image-data (image-data png)))
+    (setf 
 
 
 (defmethod ihdr-color-type (png)
