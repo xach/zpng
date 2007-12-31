@@ -101,7 +101,7 @@
                      (replace buffer data :start1 4 :end2 end)
                      (setf (pos chunk) (+ end 4))
                      (write-chunk chunk stream))))
-    (with-compressor (compressor :class 'zlib-compressor
+    (with-compressor (compressor 'zlib-compressor
                                  :callback callback)
       (dotimes (i (height png))
         (let* ((start-offset (scanline-offset png i))
