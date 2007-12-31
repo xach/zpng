@@ -38,7 +38,7 @@
 
 
 (defgeneric ihdr-color-type (png))
-(defgeneric samples/pixel (png))
+(defgeneric samples-per-pixel (png))
 (defgeneric scanline-offset (png scanline))
 (defgeneric rowstride (png))
 
@@ -63,7 +63,7 @@
 (defmethod ihdr-color-type (png)
   (cdr (assoc (color-type png) *color-types*)))
 
-(defmethod samples/pixel (png)
+(defmethod samples-per-pixel (png)
   (ecase (color-type png)
     (:grayscale 1)
     (:truecolor 3)
@@ -72,7 +72,7 @@
     (:truecolor-alpha 4)))
 
 (defmethod rowstride (png)
-  (* (width png) (samples/pixel png)))
+  (* (width png) (samples-per-pixel png)))
 
 (defmethod scanline-offset (png scanline)
   (* scanline (rowstride png)))

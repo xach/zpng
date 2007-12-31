@@ -29,6 +29,7 @@
 (defpackage #:zpng
   (:use #:cl #:salza2)
   (:export #:png
+           #:samples-per-pixel
            #:write-png
            #:write-png-stream
            #:image-data
