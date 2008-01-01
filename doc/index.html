@@ -17,9 +17,10 @@
 <blockquote class='abstract'>
 <h3>Abstract</h3>
 
-<p>ZPNG is a library for creating PNG files. It
+<p>ZPNG is a Common Lisp library for creating PNG files. It
 uses <a href='http://www.xach.com/lisp/salza2/'>Salza2</a> for
-compression.
+compression. The current version is 1.0, released on January 1st,
+2008.
 
 <p class='download'>Download shortcut:
 
@@ -48,7 +49,15 @@ compression.
 <li> <a href='#sect-feedback'>Feedback</a>
 </ol>
 
-<a name='#sect-overview'><h3>Overview and Limitations</h3></a>
+<a name='sect-overview'><h3>Overview and Limitations</h3></a>
+
+<p>ZPNG provides an interface for creating
+a <a href='#png'><tt>PNG</tt></a> object. The objects acts as a
+container for PNG sample data, which may be updated and saved to a
+file.
+
+<p>The PNG file format has many options, and ZPNG supports only a
+subset of them.
 
 <ul>
 <li> does not load PNG files
@@ -58,7 +67,7 @@ compression.
 </ul>
 
 
-<h3>Examples</h3>
+<a name='sect-examples'><h3>Examples</h3></a>
 
 
 <pre><div style='float: right' class='transparent'><img src='mandelbrot.png'
@@ -85,7 +94,7 @@ compression.
                   (return)))))))))
 </pre>
 
-<h3>Dictionary</h3>
+<a name='sect-dictionary'><h3>Dictionary</h3></a>
 
 <p>The following symbols are exported from the ZPNG package.
 
@@ -108,8 +117,9 @@ of <tt>:grayscale</tt>, <tt>:truecolor</tt> (the
 
 <li> <tt>:image-data</tt> - optional, the sample data of the image. If
 specified, this must be an octet vector with a length of 
-<i>width</i>&nbsp;&times;&nbsp;<i>height</i>&nbsp;&times;&nbsp;<i>samples-per-pixel</i>. If not
-specified, an image data vector will be created automatically.
+<i>width</i>&nbsp;&times;&nbsp;<i>height</i>&nbsp;&times;&nbsp;<i>samples-per-pixel</i>. If
+not specified, an image data vector of the appropriate size will be
+created automatically.
 
 </ul>
 
@@ -189,7 +199,9 @@ component at &lt;53,100&gt; of a truecolor PNG, you could use this:
 (aref (data-array png) 100 53 0)
 </pre>
 
-<p>Note the reversed order of the coordinate arguments.
+<p>Note the reversed order of the coordinate arguments; this is a
+consequence of Common Lisp's row-major ordering of elements in a
+multidimensional array and PNG's specified sample layout.
 
 </blockquote>
 
@@ -209,3 +221,23 @@ Returns the color type of <i>png</i>, one of
 of <tt>:grayscale</tt>, <tt>:truecolor</tt>,
 <tt>:grayscale-alpha</tt>, or <tt>:truecolor-alpha</tt>.
 </blockquote>
+
+
+<a name='sect-references'><h3>References</h3></a>
+
+<ul>
+
+<li> W3C, <a href="http://www.w3.org/TR/PNG/">Portable Network
+Graphics Specification, Second Edition</a>
+
+<li>
+Wikipedia, <a href='http://en.wikipedia.org/wiki/Mandelbrot_set'>Mandelbrot
+set</a>
+
+</ul>
+
+
+<a name='sect-feedback'><h3>Feedback</h3></a>
+
+<p>Please direct any questions, comments, bug reports, or other
+feedback to <a href='mailto:xach@xach.com'>Zach Beane</a>.
