@@ -53,11 +53,11 @@
 (defgeneric write-png (png pathname &key if-exists))
 
 (defmethod slot-unbound (class (png png) (slot (eql 'data-array)))
-  (let ((array (make-array (list (width png)
-                                  (height png)
-                                  (samples-per-pixel png))
-                            :displaced-to (image-data png)
-                            :element-type '(unsigned-byte 8))))
+  (let ((array (make-array (list (height png)
+                                 (width png)
+                                 (samples-per-pixel png))
+                           :displaced-to (image-data png)
+                           :element-type '(unsigned-byte 8))))
     (setf (%data-array png) array)))
 
 (defmethod initialize-instance :after ((png png) &rest args &key image-data)
@@ -66,10 +66,7 @@
     (setf (%image-data png)
           (make-array (* (height png) (rowstride png))
                       :initial-element 0
-                      :element-type '(unsigned-byte 8))))
-  (let ((image-data (image-data png)))
-    (setf 
-
+                      :element-type '(unsigned-byte 8)))))
 
 (defmethod ihdr-color-type (png)
   (cdr (assoc (color-type png) *color-types*)))
