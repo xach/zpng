@@ -1,0 +1,211 @@
+<html>
+<head>
+<title>ZPNG - Create PNG files from Common Lisp</title>
+<style type="text/css">
+  a, a:visited { text-decoration: none }
+  a[href]:hover { text-decoration: underline }
+  pre { background: #DDD; padding: 0.25em }
+  p.download { color: red }
+  .transparent { background-image: url(background.gif) }
+</style>
+</head>
+
+<body>
+
+<h2>ZPNG - Create PNG files from Common Lisp</h2>
+
+<blockquote class='abstract'>
+<h3>Abstract</h3>
+
+<p>ZPNG is a library for creating PNG files. It
+uses <a href='http://www.xach.com/lisp/salza2/'>Salza2</a> for
+compression.
+
+<p class='download'>Download shortcut:
+
+<p><a href='http://www.xach.com/lisp/zpng.tgz'>http://www.xach.com/lisp/zpng.tgz</a>
+
+</blockquote>
+
+<h3>Contents</h3>
+
+<ol>
+<li> <a href='#sect-overview'>Overview and Limitations</a>
+<li> <a href='#sect-examples'>Examples</a>
+<li> <a href='#sect-dictionary'>Dictionary</a>
+
+<ul>
+<li> <a href='#png'><tt>png</tt></a>
+<li> <a href='#samples-per-pixel'><tt>samples-per-pixel</tt></a>
+<li> <a href='#image-data'><tt>image-data</tt></a>
+<li> <a href='#data-array'><tt>data-array</tt></a>
+<li> <a href='#width'><tt>width</tt></a>
+<li> <a href='#height'><tt>height</tt></a>
+<li> <a href='#color-type'><tt>color-type</tt></a>
+</ul>
+
+<li> <a href='#sect-references'>References</a>
+<li> <a href='#sect-feedback'>Feedback</a>
+</ol>
+
+<a name='#sect-overview'><h3>Overview and Limitations</h3></a>
+
+<ul>
+<li> does not load PNG files
+<li> supports only 8 bits per sample
+<li> does not support filtering
+<li> does not support indexed color
+</ul>
+
+
+<h3>Examples</h3>
+
+
+<pre><div style='float: right' class='transparent'><img src='mandelbrot.png'
+></div>(defun draw-mandelbrot (file)
+  (let* ((png (make-instance '<a href='#png'>png</a>
+                             :color-type :grayscale-alpha
+                             :width 200
+                             :height 200))
+         (image (<a href='#data-array'>data-array</a> png))
+         (max 255))
+    (dotimes (y 200 (<a href='#write-png'>write-png</a> png file))
+      (dotimes (x 200)
+        (let ((c (complex (- (/ x 100.0) 1.5) (- (/ y 100.0) 1.0)))
+              (z (complex 0.0 0.0))
+              (iteration 0))
+          (loop
+           (setf z (+ (* z z) c))
+           (incf iteration)
+           (cond ((< 4 (abs z))
+                  (setf (aref image y x 1) iteration)
+                  (return))
+                 ((= iteration max)
+                  (setf (aref image y x 1) 255)
+                  (return)))))))))
+</pre>
+
+<h3>Dictionary</h3>
+
+<p>The following symbols are exported from the ZPNG package.
+
+
+<p><a name='png'>[Class]</a><br>
+<b>png</b>
+
+<blockquote>
+Instances of this class may be created directly. Supported initargs:
+
+<ul>
+
+<li> <tt>:width</tt> - required, the width of the image
+
+<li> <tt>:height</tt> - required, the height of the image
+
+<li> <tt>:color-type</tt> - optional, the color type of the image, one
+of <tt>:grayscale</tt>, <tt>:truecolor</tt> (the
+  default), <tt>:grayscale-alpha</tt>, or <tt>:truecolor-alpha</tt>
+
+<li> <tt>:image-data</tt> - optional, the sample data of the image. If
+specified, this must be an octet vector with a length of 
+<i>width</i>&nbsp;&times;&nbsp;<i>height</i>&nbsp;&times;&nbsp;<i>samples-per-pixel</i>. If not
+specified, an image data vector will be created automatically.
+
+</ul>
+
+</blockquote>
+
+<p><a name='samples-per-pixel'>[Function]</a><br>
+<b>samples-per-pixel</b> <i>png</i> => <i>samples</i>
+
+<blockquote>
+Returns the number of octet samples that make up a single pixel. 
+
+<p><table cellpadding=0 cellspacing=5>
+<tr>
+  <th>Image Color Type</th> 
+  <th>Samples per Pixel</th>
+</tr>
+<tr>
+ <td>Grayscale</td><td align=center>1</td>
+</tr>
+<tr>
+ <td>Truecolor</td><td align=center>3</td>
+</tr> 
+<tr>
+ <td>Grayscale with Alpha</td><td align=center>2</td>
+</tr>
+<tr>
+ <td>Truecolor with Alpha</td><td align=center>4</td>
+</tr>
+</table>
+
+</blockquote>
+
+
+<p><a name='image-data'>[Function]</a><br>
+<b>image-data</b> <i>png</i> => <i>octet-vector</i>
+
+<blockquote>
+Returns the image data of png. Samples are laid out from left to
+right, top to bottom, so the first samples of data affect the
+upper-left of the image and the final samples affect the lower-right.
+
+<p><table cellpadding=0 cellspacing=5>
+<tr>
+  <th>Image Color Type</th> 
+  <th>Pixel Sample Layout</th>
+</tr>
+<tr>
+ <td>Grayscale</td><td>S|S|S...</td>
+</tr>
+<tr>
+ <td>Truecolor</td><td>RGB|RGB|RGB...</td>
+</tr> 
+<tr>
+ <td>Grayscale with Alpha</td><td>SA|SA|SA...</td>
+</tr>
+<tr>
+ <td>Truecolor with Alpha</td><td>RGBA|RGBA|RGBA...</td>
+</tr>
+</table>
+
+<p>Layout of the samples into pixels is done according to the image's
+color type and is fully documented in
+the <a href="http://www.w3.org/TR/PNG/">Portable Network Graphics
+Specification.
+</blockquote>
+
+<p><a name='data-array'>[Function]</a><br>
+<b>data-array</b> <i>png</i> => <i>data-array</i>
+
+<blockquote>
+Returns a multidimensional array representing the pixels
+of <i>png</i>. The dimensions correspond to the height, width, and
+pixel components, respectively. For example, to access the red
+component at &lt;53,100&gt; of a truecolor PNG, you could use this:
+
+<pre>
+(aref (data-array png) 100 53 0)
+</pre>
+
+<p>Note the reversed order of the coordinate arguments.
+
+</blockquote>
+
+<p><a name='width'><a name='height'>[Functions]</a></a><br>
+<b>width</b> <i>png</i> => <i>width</i><br>
+<b>height</b> <i>png</i> => <i>height</i>
+
+<blockquote>
+Returns the width or height of <i>png</i>.
+</blockquote>
+
+<p><a name='color-type'>[Function]</a><br>
+<b>color-type</b> <i>png</i> => <i>color-type</i>
+
+<blockquote>
+Returns the color type of <i>png</i>, one of
+of <tt>:grayscale</tt>, <tt>:truecolor</tt>,
+<tt>:grayscale-alpha</tt>, or <tt>:truecolor-alpha</tt>.
+</blockquote>
