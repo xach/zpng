@@ -62,7 +62,7 @@
 
 (defmethod initialize-instance :after ((png png) &rest args &key image-data)
   (declare (ignore args))
-  (unless image-data
+  (unless (or image-data (slot-boundp png 'image-data))
     (setf (%image-data png)
           (make-array (* (height png) (rowstride png))
                       :initial-element 0
