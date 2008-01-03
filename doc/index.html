@@ -43,6 +43,8 @@ compression. The current version is 1.0, released on January 1st,
 <li> <a href='#width'><tt>width</tt></a>
 <li> <a href='#height'><tt>height</tt></a>
 <li> <a href='#color-type'><tt>color-type</tt></a>
+<li> <a href='#write-png'><tt>write-png</tt></a>
+<ul> <a href='#write-png-stream'><tt>write-png-stream</tt></a>
 </ul>
 
 <li> <a href='#sect-references'>References</a>
@@ -220,6 +222,26 @@ Returns the width or height of <i>png</i>.
 Returns the color type of <i>png</i>, one of
 of <tt>:grayscale</tt>, <tt>:truecolor</tt>,
 <tt>:grayscale-alpha</tt>, or <tt>:truecolor-alpha</tt>.
+</blockquote>
+
+
+<p><a name='write-png'>[Function]</a><br>
+<b>write-png</b> <i>png</i> <i>file</i> 
+<tt>&amp;key</tt> (<i>if-exists</i> <tt>:supersede</tt>)  => pathname
+
+<blockquote>
+Writes <i>png</i> to <i>file</i> and returns the truename
+of <i>file</i>. <i>if-exists</i> is passed to the
+underlying <tt>OPEN</tt> call for opening the output file.
+</blockquote>
+
+
+<p><a name='write-png-stream'>[Function]</a><br>
+<b>write-png-stream</b> <i>png</i> <i>stream</i> => |
+
+<blockquote>
+Writes <i>png</i> to <i>stream</i>, which should be a stream that can
+accept octets.
 </blockquote>
 
 
