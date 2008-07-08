@@ -46,6 +46,9 @@ The current version is 1.0.1, released on January 3rd, 2008.
 <li> <a href='#color-type'><tt>color-type</tt></a>
 <li> <a href='#write-png'><tt>write-png</tt></a>
 <li> <a href='#write-png-stream'><tt>write-png-stream</tt></a>
+<li> <a href='#invalid-size'><tt>invalid-size</tt></a>
+<li> <a href='#invalid-size-width'><tt>invalid-size-width</tt></a>
+<li> <a href='#invalid-size-height'><tt>invalid-size-height</tt></a>
 </ul>
 
 <li> <a href='#sect-references'>References</a>
@@ -243,6 +246,22 @@ underlying <tt>OPEN</tt> call for opening the output file.
 <blockquote>
 Writes <i>png</i> to <i>stream</i>, which should be a stream that can
 accept octets.
+</blockquote>
+
+<p><a name='invalid-size'>[Condition]</a><br>
+<b>invalid-size</b>
+
+<blockquote>
+A condition of this type is signaled when a PNG with invalid size is
+created. Valid PNGs have positive width and height.
+</blockquote>
+
+<p><a name='invalid-size-width'>[Accessors]</a><br>
+<b>invalid-size-width</b> <i>condition</i> => <i>width</i><br>
+<b>invalid-size-height</b> <i>condition</i> => <i>height</i>
+
+<blockquote>
+These accessors provide the invalid size used for a PNG.
 </blockquote>
 
 

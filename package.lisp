@@ -36,4 +36,8 @@
            #:width
            #:height
            #:color-type
-           #:samples-per-pixel))
+           #:samples-per-pixel
+           ;; conditions
+           #:invalid-size
+           #:invalid-size-width
+           #:invalid-size-height))
