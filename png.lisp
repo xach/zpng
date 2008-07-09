@@ -85,6 +85,14 @@
                            :element-type '(unsigned-byte 8))))
     (setf (%data-array png) array)))
 
+(defun check-size (png)
+  (let ((width (width png))
+        (height (height png)))
+    (unless (and (plusp width) (plusp height))
+      (error 'invalid-size
+             :width width
+             :height height))))
+
 (defmethod initialize-instance :after ((png png) &rest args &key image-data)
   (declare (ignore args))
   (check-size png)

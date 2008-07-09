@@ -28,7 +28,7 @@
 
 (asdf:defsystem #:zpng
   :depends-on (#:salza2)
-  :version "1.1.0"
+  :version "1.1.1"
   :components ((:file "package")
                (:file "specials"
                       :depends-on ("package"))
@@ -36,7 +36,10 @@
                       :depends-on ("package"))
                (:file "chunk"
                       :depends-on ("utils"))
+               (:file "conditions"
+                      :depends-on ("package"))
                (:file "png"
                       :depends-on ("specials"
                                    "chunk"
+                                   "conditions"
                                    "utils"))))

@@ -44,14 +44,6 @@
                      (invalid-size-width condition)
                      (invalid-size-height condition)))))
 
-(defun check-size (png)
-  (let ((width (width png))
-        (height (height png)))
-    (unless (and (plusp width) (plusp height))
-      (error 'invalid-size
-             :width width
-             :height height))))
-
 (define-condition invalid-row-length (zpng-error)
   ((expected-length
     :initarg :expected-length
