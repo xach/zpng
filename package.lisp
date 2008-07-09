@@ -37,6 +37,8 @@
    #:samples-per-pixel
    ;; in-memory pngs
    #:png
+   #:copy-png
+   #:png=
    #:image-data
    #:data-array
    #:write-png

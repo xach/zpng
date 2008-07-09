@@ -66,6 +66,9 @@
 (defgeneric write-idat (png stream))
 (defgeneric write-iend (png stream))
 
+(defgeneric copy-png (png))
+(defgeneric png= (png1 png2))
+
 (defgeneric write-png-stream (png stream))
 (defgeneric write-png (png pathname &key if-exists))
 
@@ -166,6 +169,25 @@
                    :element-type '(unsigned-byte 8))
     (write-png-stream png stream)
     (truename file)))
+
+(defmethod copy-png (orig)
+  (make-instance 'png
+                 :width (width orig)
+                 :height (height orig)
+                 :color-type (color-type orig)
+                 :bpp (bpp orig)
+                 :image-data (copy-seq (image-data orig))))
+
+(defmethod png= (png1 png2)
+  (or (eq png1 png2)
+      (and (= (width png1)  (width png2))
+           (= (height png1) (height png2))
+           (= (bpp png1) (bpp png2))
+           (eq (color-type png1) (color-type png2))
+           (let ((png1.data (image-data png1))
+                 (png2.data (image-data png2)))
+             (not (mismatch png1.data png2.data))))))
+
 
 ;;; Streamed PNG methods
 

@@ -56,6 +56,8 @@ The current version is 1.0.1, released on January 3rd, 2008.
 <li> <a href='#png'><tt>png</tt></a>
 <li> <a href='#image-data'><tt>image-data</tt></a>
 <li> <a href='#data-array'><tt>data-array</tt></a>
+<li> <a href='#copy-png'><tt>copy-png</tt></a>
+<li> <a href='#png='><tt>png=</tt></a>
 <li> <a href='#write-png'><tt>write-png</tt></a>
 <li> <a href='#write-png-stream'><tt>write-png-stream</tt></a>
 </ul>
@@ -276,6 +278,23 @@ component at &lt;53,100&gt; of a truecolor PNG, you could use this:
 consequence of Common Lisp's row-major ordering of elements in a
 multidimensional array and PNG's specified sample layout.
 
+</blockquote>
+
+
+<p><a name='copy-png'>[Function]</a><br>
+<b>copy-png</b> <i>png</i> => <i>png-copy</i>
+
+<blockquote>
+Create a copy of <i>png</i>.
+</blockquote>
+
+
+<p><a name='png='>[Function]</a><br>
+<b>png=</b> <i>png1</i> <i>png2</i> => <i>boolean</i>
+
+<blockquote>
+Returns true if png1 and png2 are equal. Equality is defined as having
+the same dimensions, color type, and image data.
 </blockquote>
 
 
