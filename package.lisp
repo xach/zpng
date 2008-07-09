@@ -28,16 +28,31 @@
 
 (defpackage #:zpng
   (:use #:cl #:salza2)
-  (:export #:png
-           #:write-png
-           #:write-png-stream
-           #:image-data
-           #:data-array
-           #:width
-           #:height
-           #:color-type
-           #:samples-per-pixel
-           ;; conditions
-           #:invalid-size
-           #:invalid-size-width
-           #:invalid-size-height))
+  (:export
+   ;; generic
+   #:width
+   #:height
+   #:rowstride
+   #:color-type
+   #:samples-per-pixel
+   ;; in-memory pngs
+   #:png
+   #:image-data
+   #:data-array
+   #:write-png
+   #:write-png-stream
+   ;; row-at-a-time pngs
+   #:streamed-png
+   #:start-png
+   #:write-row
+   #:rows-written
+   #:rows-left
+   #:finish-png
+   ;; conditions
+   #:zpng-error
+   #:invalid-size
+   #:invalid-size-width
+   #:invalid-size-height
+   #:invalid-row-length
+   #:insufficient-rows
+   #:too-many-rows))

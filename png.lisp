@@ -28,16 +28,33 @@
 
 (in-package #:zpng)
 
-(defclass png ()
+(defclass base-png ()
   ((width :initarg :width :reader width)
    (height :initarg :height :reader height)
    (color-type :initform :truecolor :initarg :color-type :reader color-type)
-   (bpp :initform 8 :initarg :bpp :reader bpp)
-   (image-data :initarg :image-data :reader image-data
+   (bpp :initform 8 :initarg :bpp :reader bpp)))
+
+(defclass png (base-png)
+  ((image-data :initarg :image-data :reader image-data
                :writer (setf %image-data))
    (data-array :reader data-array
                :writer (setf %data-array))))
 
+(defclass streamed-png (base-png)
+  ((rows-written
+    :initarg :rows-written
+    :accessor rows-written)
+   (row-data
+    :initarg :row-data
+    :accessor row-data)
+   (compressor
+    :initarg :compressor
+    :accessor compressor)
+   (output-stream
+    :initarg :output-stream
+    :accessor output-stream))
+  (:default-initargs
+   :rows-written 0))
 
 (defgeneric ihdr-color-type (png))
 (defgeneric samples-per-pixel (png))
@@ -52,6 +69,11 @@
 (defgeneric write-png-stream (png stream))
 (defgeneric write-png (png pathname &key if-exists))
 
+(defgeneric start-png (png stream))
+(defgeneric write-row (row png &key start end))
+(defgeneric finish-png (png))
+(defgeneric rows-left (png))
+
 (defmethod slot-unbound (class (png png) (slot (eql 'data-array)))
   (let ((array (make-array (list (height png)
                                  (width png)
@@ -62,6 +84,7 @@
 
 (defmethod initialize-instance :after ((png png) &rest args &key image-data)
   (declare (ignore args))
+  (check-size png)
   (unless (or image-data (slot-boundp png 'image-data))
     (setf (%image-data png)
           (make-array (* (height png) (rowstride png))
@@ -86,8 +109,6 @@
   (* scanline (rowstride png)))
 
 
-
-
 (defmethod write-png-header (png stream)
   (write-sequence *png-signature* stream))
 
@@ -102,13 +123,16 @@
     (chunk-write-byte +png-interlace+ chunk)
     (write-chunk chunk stream)))
 
+(defun make-idat-callback (stream)
+  (let* ((idat (make-chunk 73 68 65 84 16384))
+         (buffer (buffer idat)))
+    (lambda (data end)
+      (replace buffer data :start1 4 :end2 end)
+      (setf (pos idat) (+ end 4))
+      (write-chunk idat stream))))
+
 (defmethod write-idat (png stream)
-  (let* ((chunk (make-chunk 73 68 65 84 16384))
-         (buffer (buffer chunk))
-         (callback (lambda (data end)
-                     (replace buffer data :start1 4 :end2 end)
-                     (setf (pos chunk) (+ end 4))
-                     (write-chunk chunk stream))))
+  (let ((callback (make-idat-callback stream)))
     (with-compressor (compressor 'zlib-compressor
                                  :callback callback)
       (dotimes (i (height png))
@@ -127,12 +151,14 @@
 
 
 (defmethod write-png-stream (png stream)
+  (check-size png)
   (write-png-header png stream)
   (write-ihdr png stream)
   (write-idat png stream)
   (write-iend png stream))
   
 (defmethod write-png (png file &key (if-exists :supersede))
+  (check-size png)
   (with-open-file (stream file
                    :direction :output
                    :if-exists if-exists
@@ -140,3 +166,53 @@
                    :element-type '(unsigned-byte 8))
     (write-png-stream png stream)
     (truename file)))
+
+;;; Streamed PNG methods
+
+(defmethod slot-unbound (class (png streamed-png) (slot (eql 'row-data)))
+  (let ((data (make-array (rowstride png) :element-type '(unsigned-byte 8)
+                          :initial-element 0)))
+    (setf (row-data png) data)))
+
+(defmethod start-png ((png streamed-png) stream)
+  (setf (output-stream png) stream)
+  (write-png-header png stream)
+  (write-ihdr png stream)
+  (setf (compressor png)
+        (make-instance 'zlib-compressor
+                       :callback (make-idat-callback stream)))
+  stream)
+
+(defmethod write-row (row (png streamed-png) &key (start 0) end)
+  (let ((rowstride (rowstride png)))
+    (setf end (or end (+ start rowstride)))
+    (let ((row-length (- end start)))
+      (unless (= (- end start) (rowstride png))
+        (error 'invalid-row-length
+               :expected-length rowstride
+               :actual-length row-length))
+      (unless (< (rows-written png) (height png))
+        (error 'too-many-rows :count (height png)))
+      (let ((compressor (compressor png)))
+        (compress-octet 0 compressor)
+        (compress-octet-vector row compressor :start start :end end)
+        (incf (rows-written png))))))
+
+(defun reset-streamed-png (png)
+  (setf (rows-written png) 0)
+  (slot-makunbound png 'compressor)
+  (slot-makunbound png 'output-stream)
+  (fill (row-data png) 0))
+
+(defmethod finish-png ((png streamed-png))
+  (when (/= (rows-written png) (height png))
+    (error 'insufficient-rows
+           :written (rows-written png)
+           :needed (height png)))
+  (finish-compression (compressor png))
+  (write-iend png (output-stream png))
+  (reset-streamed-png png)
+  png)
+
+(defmethod rows-left ((png streamed-png))
+  (- (height png) (rows-written png)))

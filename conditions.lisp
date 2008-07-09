@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2007 Zachary Beane, All Rights Reserved
+;;; Copyright (c) 2008 Zachary Beane, All Rights Reserved
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
@@ -29,7 +29,9 @@
 
 (in-package #:zpng)
 
-(define-condition invalid-size (error)
+(define-condition zpng-error (error) ())
+
+(define-condition invalid-size (zpng-error)
   ((width
     :initarg :width
     :reader invalid-size-width)
@@ -49,3 +51,37 @@
       (error 'invalid-size
              :width width
              :height height))))
+
+(define-condition invalid-row-length (zpng-error)
+  ((expected-length
+    :initarg :expected-length
+    :accessor invalid-row-length-expected-length)
+   (actual-length
+    :initarg :actual-length
+    :accessor invalid-row-length-actual-length))
+  (:report (lambda (condition stream)
+             (format stream "Invalid row length ~A (expected ~A)"
+                     (invalid-row-length-actual-length condition)
+                     (invalid-row-length-expected-length condition)))))
+
+(define-condition insufficient-rows (zpng-error)
+  ((written
+    :initarg :written
+    :accessor insufficient-rows-written)
+   (needed
+    :initarg :needed
+    :accessor insufficient-rows-needed))
+  (:report (lambda (condition stream)
+             (format stream "Insufficient rows written; need ~A, but only ~A ~
+                             written"
+                     (insufficient-rows-needed condition)
+                     (insufficient-rows-written condition)))))
+
+(define-condition too-many-rows (zpng-error)
+  ((count
+    :initarg :count
+    :accessor too-many-rows-count))
+  (:report (lambda (condition stream)
+             (format stream "Too many rows written for PNG; maximum row count ~
+                             is ~A"
+                     (too-many-rows-count condition)))))
