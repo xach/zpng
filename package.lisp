@@ -46,10 +46,15 @@
    ;; row-at-a-time pngs
    #:streamed-png
    #:start-png
+   #:row-data
    #:write-row
    #:rows-written
    #:rows-left
    #:finish-png
+   ;; pixel-at-a-time pngs
+   #:pixel-streamed-png
+   #:write-pixel
+   #:pixels-left-in-row
    ;; conditions
    #:zpng-error
    #:invalid-size
@@ -57,4 +62,6 @@
    #:invalid-size-height
    #:invalid-row-length
    #:insufficient-rows
-   #:too-many-rows))
+   #:incomplete-row
+   #:too-many-rows
+   #:color-type-mismatch))

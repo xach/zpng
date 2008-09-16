@@ -73,6 +73,15 @@ The current version is 1.1.3, released on July 9, 2008.
 <li> <a href='#finish-png'><tt>finish-png</tt></a>
 </ul>
 
+<li> Streamed, pixel-at-a-time PNGs
+
+<ul>
+<li> <a href='#pixel-streamed-png'><tt>pixel-streamed-png</tt></a>
+<li> <a href='#write-pixel'><tt>write-pixel</tt></a>
+<li> <a href='#pixels-left-in-row'><tt>pixels-left-in-row</tt></a>
+</ul>
+
+
 <li> Errors
 
 <ul>
@@ -82,7 +91,9 @@ The current version is 1.1.3, released on July 9, 2008.
 <li> <a href='#invalid-size-height'><tt>invalid-size-height</tt></a>
 <li> <a href='#invalid-row-length'><tt>invalid-row-length</tt></a>
 <li> <a href='#insufficient-rows'><tt>insufficient-rows</tt></a>
+<li> <a href='#incomplete-row'><tt>incomplete-row</tt></a>
 <li> <a href='#too-many-rows'><tt>too-many-rows</tt></a>
+<li> <a href='#color-type-mismatch'><tt>color-type-mismatch</tt></a>
 </ul>
 
 </ul>
@@ -93,13 +104,17 @@ The current version is 1.1.3, released on July 9, 2008.
 
 <a name='sect-overview'><h3>Overview and Limitations</h3></a>
 
-<p>ZPNG provides two interfaces creating PNG files. The first is through a 
+<p>ZPNG provides three interfaces creating PNG files. The first is through a 
 <a href='#png'><tt>PNG</tt></a> object, which holds all image sample
 data and which may be written out to a file all at once. The second is
 through a <a href='#streamed-png'><tt>STREAMED-PNG</tt></a> object,
 which writes a single output row of the image at a time. By working
 with only a single row at a time, images that are too big to fit in
-memory may still be written out incrementally as a PNG file.
+memory may still be written out incrementally as a PNG file.  The third
+is through a <a href='#pixel-streamed-png'><tt>PIXEL-STREAMED-PNG</tt></a>
+object which allows you to write a single pixel at a time.  It still
+buffers a whole row at a time, but it manages all of the buffer
+handling for you.
 
 <p>The PNG file format has many options, and ZPNG supports only a
 subset of them.
@@ -137,6 +152,28 @@ subset of them.
                  ((= iteration max)
                   (setf (aref image y x 1) 255)
                   (return)))))))))
+</pre>
+
+<pre><div style='float: right' class='transparent'><img src='rgb.png'
+></div>(defun draw-rgb (file)
+  (let ((png (make-instance '<a
+                              href='#pixel-streamed-png'>pixel-streamed-png</a>
+                             :color-type :truecolor-alpha
+                             :width 200
+                             :height 200)))
+    (with-open-file (stream file
+			    :direction :output
+			    :if-exists :supersede
+			    :if-does-not-exist :create
+			    :element-type '(unsigned-byte 8))
+      (<a href='#start-png'>start-png</a> png stream)
+      (loop for a from 38 to 255 by 31
+	do (loop for b from 10 to 255 by 10
+	     do (loop for g from 38 to 255 by 31
+		  do (loop for r from 10 to 255 by 10
+			do (<a href='#write-pixel'
+			       >write-pixel</a> (list r g b a) png)))))
+      (<a href='#finish-png'>finish-png</a> png))))
 </pre>
 
 <a name='sect-dictionary'><h3>Dictionary</h3></a>
@@ -438,6 +475,54 @@ signaled.
 </blockquote>
 
 
+<p><a name='pixel-streamed-png'>[Class]</a><br>
+<b>pixel-streamed-png</b>
+
+<blockquote>
+Instances of this class may be created directly. Supports all the
+initargs of the <a href='#png'><tt>STREAMED-PNG</tt></a> class.
+
+<p>The <tt>PIXEL-STREAMED-PNG</tt> class extends the <tt>STREAMED-PNG</TT>
+class.  Rather than preparing a row of pixels and caling the
+<a href='#write-row'><tt>WRITE-ROW</tt></a> method, with
+<tt>PIXEL-STREAMED-PNG</tt> instances, you write a single pixel
+at a time with the <tt>WRITE-PIXEL</tt> method. The protocol for incrementally writing out via
+a <tt>PIXEL-STREAMED-PNG</tt> involves these generic functions:
+
+<ul>
+<li> <a href='#start-png'><tt>START-PNG</tt></a>
+<li> <a href='#write-pixel'><tt>WRITE-PIXEL</tt></a>
+<li> <a href='#rows-written'><tt>ROWS-WRITTEN</tt></a>
+<li> <a href='#rows-left'><tt>ROWS-LEFT</tt></a>
+<li> <a href='#pixels-left-in-row'><tt>PIXELS-LEFT-IN-ROW</tt></a>
+<li> <a href='#finish-png'><tt>FINISH-PNG</tt></a>
+</ul>
+
+</blockquote>
+
+
+<p><a name='write-pixel'>[Function]</a><br>
+<b>write-pixel</b> <i>pixel-samples</i> <i>pixel-streamed-png</i>
+
+<blockquote>
+This function writes the samples for a single pixel from the
+<tt>PIXEL-SAMPLES</tt> sequence to the next available spot in the <a
+href='#row-data'><tt>ROW-DATA</tt></a> buffer.  When the buffer is
+full, this method invokes the
+<a href='#write-row'><tt>WRITE-ROW</tt></a> method.  The length of the
+<tt>PIXEL-SAMPLES</tt> sequence must be equal to the <a
+href='#samples-per-pixel'><tt>SAMPLES-PER-PIXEL</tt></a>.
+ </blockquote>
+
+<p><a name='pixels-left-in-row'>[Function]</a><br>
+<b>pixels-left-in-row</b> <i>pixel-streamed-png</i>
+
+<blockquote>
+This function tells how many pixels one would need to
+write to complete the current row of pixels.
+</blockquote>
+
+
 <p><a name='zpng-error'>[Condition]</a><br>
 <b>zpng-error</b>
 
@@ -484,6 +569,17 @@ before enough rows have been written
 via <a href='#write-row'><tt>WRITE-ROW</tt></a>.
 </blockquote>
 
+
+<p><a name='incomplete-row'>[Condition]</a><br>
+<b>incomplete-row</b>
+
+<blockquote>
+A condition of this type is signaled from <a
+href='#finish-png'><tt>FINISH-PNG</tt></a> when it is called on a <a
+href='#pixel-streamed-png'><tt>PIXEL-STREAMED-PNG</tt></a> before the
+current row of pixels has been completed.
+</blockquote>
+
 <p><a name='too-many-rows'>[Condition]</a><br>
 <b>too-many-rows</b>
 
@@ -491,6 +587,17 @@ via <a href='#write-row'><tt>WRITE-ROW</tt></a>.
 A condition of this type is signaled
 from <a href='#write-row'><tt>WRITE-ROW</tt></a> if it is called more
 times than is necessary for the given PNG.
+</blockquote>
+
+<p><a name='color-type-mismatch'>[Condition]</a><br>
+<b>color-type-mismatch</b>
+
+<blockquote>
+A condition of this type is signaled from <a
+href='#write-pixel'><tt>WRITE-PIXEL</tt></a> if the number of samples
+in the pixel is not the expected <a
+href='#samples-per-pixel'><tt>SAMPLES-PER-PIXEL</tt></a> for the given
+PNG.
 </blockquote>
 
 

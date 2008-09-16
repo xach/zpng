@@ -69,6 +69,19 @@
                      (insufficient-rows-needed condition)
                      (insufficient-rows-written condition)))))
 
+(define-condition incomplete-row (zpng-error)
+  ((written
+    :initarg :written
+    :accessor incomplete-row-written)
+   (needed
+    :initarg :needed
+    :accessor incomplete-row-needed))
+  (:report (lambda (condition stream)
+             (format stream "Incomplete row started; need ~A, but only ~A ~
+                             written"
+                     (incomplete-row-needed condition)
+                     (incomplete-row-written condition)))))
+
 (define-condition too-many-rows (zpng-error)
   ((count
     :initarg :count
@@ -77,3 +90,16 @@
              (format stream "Too many rows written for PNG; maximum row count ~
                              is ~A"
                      (too-many-rows-count condition)))))
+
+(define-condition color-type-mismatch (zpng-error)
+  ((given
+    :initarg :given
+    :accessor color-type-mismatch-given)
+   (expected
+    :initarg :expected
+    :accessor color-type-mismatch-expected))
+  (:report (lambda (condition stream)
+	     (format stream "Wrong number of samples for PNG pixel; need ~A, ~
+                             but only ~A written"
+		     (color-type-mismatch-expected condition)
+		     (color-type-mismatch-given condition)))))

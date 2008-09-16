@@ -56,6 +56,11 @@
   (:default-initargs
    :rows-written 0))
 
+(defclass pixel-streamed-png (streamed-png)
+  ((current-offset
+    :initform 0
+    :accessor current-offset)))
+
 (defgeneric ihdr-color-type (png))
 (defgeneric samples-per-pixel (png))
 (defgeneric scanline-offset (png scanline))
@@ -76,6 +81,10 @@
 (defgeneric write-row (row png &key start end))
 (defgeneric finish-png (png))
 (defgeneric rows-left (png))
+(defgeneric reset-streamed-png (png))
+
+(defgeneric write-pixel (pixel png))
+(defgeneric pixels-left-in-row (png))
 
 (defmethod slot-unbound (class (png png) (slot (eql 'data-array)))
   (let ((array (make-array (list (height png)
@@ -213,6 +222,10 @@
                        :callback (make-idat-callback stream)))
   stream)
 
+(defmethod start-png ((png pixel-streamed-png) stream)
+  (setf (current-offset png) 0)
+  (call-next-method))
+
 (defmethod write-row (row (png streamed-png) &key (start 0) end)
   (let ((rowstride (rowstride png)))
     (setf end (or end (+ start rowstride)))
@@ -228,11 +241,15 @@
         (compress-octet-vector row compressor :start start :end end)
         (incf (rows-written png))))))
 
-(defun reset-streamed-png (png)
+(defmethod reset-streamed-png ((png streamed-png))
   (setf (rows-written png) 0)
   (slot-makunbound png 'compressor)
   (slot-makunbound png 'output-stream)
   (fill (row-data png) 0))
+
+(defmethod reset-streamed-png ((png pixel-streamed-png))
+  (setf (current-offset png) 0)
+  (call-next-method))
 
 (defmethod finish-png ((png streamed-png))
   (when (/= (rows-written png) (height png))
@@ -244,5 +261,31 @@
   (reset-streamed-png png)
   png)
 
+(defmethod finish-png ((png pixel-streamed-png))
+  (let* ((color-channels (samples-per-pixel png))
+	 (columns (/ (current-offset png) color-channels)))
+    (unless (zerop columns)
+      (error 'incomplete-row
+	     :written columns
+	     :needed (/ (length (row-data png)) color-channels))))
+  (call-next-method))
+
 (defmethod rows-left ((png streamed-png))
   (- (height png) (rows-written png)))
+
+(defmethod write-pixel (pixel (png pixel-streamed-png))
+  (let ((row-data (row-data png))
+	(samples-per-pixel (length pixel))
+	(samples-per-pixel-expected (samples-per-pixel png)))
+    (unless (= samples-per-pixel samples-per-pixel-expected)
+      (error 'color-type-mismatch
+	     :given samples-per-pixel
+	     :expected samples-per-pixel-expected))
+    (replace row-data pixel :start1 (current-offset png))
+    (when (= (incf (current-offset png) samples-per-pixel) (rowstride png))
+      (write-row row-data png)
+      (setf (current-offset png) 0)))
+  png)
+
+(defmethod pixels-left-in-row ((png pixel-streamed-png))
+  (/ (- (current-offset png) (rowstride png)) (samples-per-pixel png)))
