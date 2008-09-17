@@ -45,6 +45,7 @@
    #:write-png-stream
    ;; row-at-a-time pngs
    #:streamed-png
+   #:row-data
    #:start-png
    #:row-data
    #:write-row
