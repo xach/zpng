@@ -481,7 +481,7 @@ signaled.
 
 <blockquote>
 Instances of this class may be created directly. Supports all the
-initargs of the <a href='#png'><tt>STREAMED-PNG</tt></a> class.
+initargs of the <a href='#streamed-png'><tt>STREAMED-PNG</tt></a> class.
 
 <p>The <tt>PIXEL-STREAMED-PNG</tt> class extends the <tt>STREAMED-PNG</TT>
 class.  Rather than preparing a row of pixels and caling the
@@ -506,10 +506,10 @@ a <tt>PIXEL-STREAMED-PNG</tt> involves these generic functions:
 <b>write-pixel</b> <i>pixel-samples</i> <i>pixel-streamed-png</i>
 
 <blockquote>
-This function writes the samples for a single pixel from the
-<tt>PIXEL-SAMPLES</tt> sequence to the next available spot in the <a
-href='#row-data'><tt>ROW-DATA</tt></a> buffer.  When the buffer is
-full, this method invokes the
+Writes the samples for a single pixel from the sequence
+<i>pixel-samples</i> to the next available spot in
+the <a href='#row-data'><tt>ROW-DATA</tt></a> buffer.  When the buffer
+is full, this method invokes the
 <a href='#write-row'><tt>WRITE-ROW</tt></a> method.  The length of the
 <tt>PIXEL-SAMPLES</tt> sequence must be equal to the <a
 href='#samples-per-pixel'><tt>SAMPLES-PER-PIXEL</tt></a>.
@@ -519,8 +519,8 @@ href='#samples-per-pixel'><tt>SAMPLES-PER-PIXEL</tt></a>.
 <b>pixels-left-in-row</b> <i>pixel-streamed-png</i>
 
 <blockquote>
-This function tells how many pixels one would need to
-write to complete the current row of pixels.
+Returns the number of pixels left to write to complete the current row
+of pixels.
 </blockquote>
 
 
