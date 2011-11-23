@@ -29,6 +29,7 @@
 (asdf:defsystem #:zpng
   :depends-on (#:salza2)
   :version "1.2"
+  :description "Create PNG files"
   :components ((:file "package")
                (:file "specials"
                       :depends-on ("package"))
